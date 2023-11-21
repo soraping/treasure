@@ -23,7 +23,7 @@ public class WxaAuthController {
     public CommonResult<WxaCustomerAuthInfo> getUserInfo(@PathVariable("code") String code){
         WxaAuthRequest wxaAuthRequest = new WxaAuthRequest();
         wxaAuthRequest.setCode(code);
-        return CommonResult.success(wxaCustomerAuthProvider.wxaCustomerAuth(wxaAuthRequest, SecurityConstants.FROM_IN));
+        return wxaCustomerAuthProvider.wxaCustomerAuth(wxaAuthRequest, SecurityConstants.FROM_IN);
     }
 
 

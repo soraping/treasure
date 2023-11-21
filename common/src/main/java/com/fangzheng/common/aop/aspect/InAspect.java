@@ -7,6 +7,7 @@ import com.fangzheng.common.exception.enums.GlobalErrorCodeConstants;
 import com.fangzheng.common.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -20,6 +21,8 @@ import javax.servlet.http.HttpServletRequest;
  * 在环绕内再次加密，比对密文
  * 用这个方式鉴权更加安全
  */
+
+@Slf4j
 @Aspect
 @Component
 @AllArgsConstructor
@@ -32,6 +35,7 @@ public class InAspect {
     public Object around(ProceedingJoinPoint joinPoint, In inside){
         String fromKey = request.getHeader(SecurityConstants.FROM_KEY);
         if(inside.value() && !StringUtils.equals(fromKey, SecurityConstants.FROM_IN)){
+            log.error("该接口只能服务内部调用");
             // 注解方法没有该字段，则表示非法访问，直接跑出异常
             throw new ServiceException(GlobalErrorCodeConstants.FORBIDDEN);
         }

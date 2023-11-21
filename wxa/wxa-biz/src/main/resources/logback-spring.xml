@@ -1,0 +1,97 @@
+<configuration
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNameSpaceSchemaLocation="logback.xsd"
+        scan="true"
+        scanPeriod="60 seconds"
+        debug="false">
+
+    <!--项目名称-->
+    <springProperty scope="context" name="app.name" source="spring.application.name" defaultValue="user-provider"/>
+    <!--kafka地址-->
+    <springProperty scope="context" name="kafka.servers" source="spring.kafka.bootstrap-servers" defaultValue="192.168.1.4:9092"/>
+
+    <property name="DEFAULT_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level --- [%thread] %logger{40} : %msg%n"/>
+
+    <!-- property: name的值是变量的名称，value的值时变量定义的值。通过定义的值会被插入到logger上下文中。定义变量后，可以使“${}”来使用变量。 -->
+    <!-- 日志最大的历史 10天 -->
+    <property name="maxHistory" value="10" />
+    <!--日志文件大小-->
+    <property name="maxFileSize" value="10MB" />
+    <!--日志文件总大小-->
+    <property name="totalSizeCap" value="1GB" />
+    <!-- 该 <springProperty> 标签中，属性 source 属性指向 Spring(application.yml)中获取属性，以便在Logback中使用。定义变量后，可以使“${}”来使用变量 -->
+    <springProperty scope="context" name="log.path" source="log.path" defaultValue="./logs"/>
+
+    <appender name="CONSOLE_LOG" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 默认情况下，每个日志事件都会立即刷新到基础输出流。 这种默认方法更安全，因为如果应用程序在没有正确关闭appender的情况下退出，则日志事件不会丢失。
+        但是，为了显着增加日志记录吞吐量，您可能希望将immediateFlush属性设置为false -->
+        <immediateFlush>false</immediateFlush>
+        <encoder>
+            <!--输出格式，上面声明的常量-->
+            <pattern>${DEFAULT_LOG_PATTERN}</pattern>
+            <!-- 控制台也要使用UTF-8，不要使用GBK，否则会中文乱码 -->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 时间滚动输出 level为 INFO 日志 -->
+    <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 正在记录的日志文件的路径及文件名 -->
+        <file>${log.path}/log.log</file>
+        <!--日志文件输出格式-->
+        <encoder>
+            <pattern>${DEFAULT_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 每天日志归档路径以及格式 -->
+            <fileNamePattern>${log.path}/log-info-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>${maxFileSize}</maxFileSize>
+            <maxHistory>${maxHistory}}</maxHistory>
+            <totalSizeCap>${totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+        <!-- 此日志文件只记录info级别的 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="KAFKA_APPENDER" class="com.github.danielwegener.logback.kafka.KafkaAppender">
+<!--        com.github.danielwegener.logback.kafka.encoding.LayoutKafkaMessageEncoder 已经取消，-->
+<!--        用 ch.qos.logback.core.encoder.LayoutWrappingEncoder 替代-->
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="net.logstash.logback.layout.LogstashLayout">
+                <includeContext>false</includeContext>
+                <includeCallerData>false</includeCallerData>
+                <customFields>{"appName":"${app.name}"}</customFields>
+                <fieldNames class="net.logstash.logback.fieldnames.ShortenedFieldNames"/>
+            </layout>
+            <charset>UTF-8</charset>
+        </encoder>
+        <topic>springcloudlog</topic>
+        <keyingStrategy class="com.fangzheng.common.config.kafka.LogKeyStrategy" />
+        <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy" />
+        <producerConfig>acks=0</producerConfig>
+        <producerConfig>linger.ms=1000</producerConfig>
+        <producerConfig>max.block.ms=0</producerConfig>
+        <producerConfig>bootstrap.servers=${kafka.servers}</producerConfig>
+    </appender>
+
+    <springProfile name="dev">
+        <root level="info">
+            <appender-ref ref="CONSOLE_LOG" />
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="info">
+            <appender-ref ref="KAFKA_APPENDER" />
+            <appender-ref ref="INFO_FILE" />
+        </root>
+    </springProfile>
+
+</configuration>
