@@ -1,0 +1,25 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: fangzheng-gateway # 网关名称
+
+  cloud:
+    nacos:
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: 192.168.1.6:8848
+
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: wxa-provider
+          uri: lb://wxa-provider
+          predicates:
+            - Path=/wxa/**
+          filters:
+            - AddRequestHeader=sign, hellohello

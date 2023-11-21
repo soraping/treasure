@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.fangzheng</groupId>
+        <artifactId>treasure</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <artifactId>fangzheng-consumer</artifactId>
+    <name>fangzheng-consumer</name>
+    <description>fangzheng-consumer</description>
+
+    <properties>
+        <wxa-api.version>${revision}</wxa-api.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.fangzheng</groupId>
+            <artifactId>wxa-api</artifactId>
+            <version>${wxa-api.version}</version>
+        </dependency>
+
+    </dependencies>
+
+</project>
